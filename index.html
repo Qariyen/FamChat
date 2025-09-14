@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fam-Chat</title>
+<title>Fam-Chat Pro</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 * {
@@ -382,7 +382,7 @@ body.dark .emoji-picker span:hover {
 </style>
 </head>
 <body>
-  <div class="header">💬 Fam-Chat Pro | Made by: AriyenQ</div>
+  <div class="header">💬 Fam-Chat Pro</div>
   <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
 
   <!-- Login Screen -->
@@ -515,32 +515,6 @@ function showChat() {
   document.getElementById("name").classList.add('hidden');
   document.getElementById("chat").classList.remove('hidden');
   loadMessages();
-}
-
-function signUp() {
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
-  
-  clearError();
-  
-  if (!email || !password) {
-    showError("Please fill in all fields");
-    return;
-  }
-  
-  if (password.length < 6) {
-    showError("Password must be at least 6 characters");
-    return;
-  }
-  
-  auth.createUserWithEmailAndPassword(email, password)
-    .then(() => {
-      console.log('Account created successfully');
-    })
-    .catch(error => {
-      console.error('Sign up error:', error);
-      showError(getErrorMessage(error));
-    });
 }
 
 function signIn() {
@@ -744,5 +718,4 @@ document.addEventListener('click', function(event) {
 </script>
 </body>
 </html>
-
 
