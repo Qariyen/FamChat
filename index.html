@@ -9,14 +9,14 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Roboto',sans-serif;background:#f0f2f5;transition:.3s;}
 body.dark{background:#18191A;color:#E4E6EB;}
-header{text-align:center;padding:1.5rem;background:linear-gradient(90deg,#4facfe,#00f2fe);color:white;font-size:2rem;font-weight:bold;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+header{display:flex;align-items:center;justify-content:center;position:relative;padding:1.5rem;background:linear-gradient(90deg,#4facfe,#00f2fe);color:white;font-size:2rem;font-weight:bold;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
 body.dark header{background:linear-gradient(90deg,#1F1F1F,#3A3A3A);}
-.dark-toggle{position:fixed;top:1rem;right:1rem;padding:.5rem 1rem;border:none;border-radius:10px;cursor:pointer;background:#4facfe;color:white;font-weight:bold;transition:.3s;}
-.dark-toggle:hover{background:#00f2fe;}
+.dark-toggle{position:absolute;right:1.5rem;padding:.5rem 1rem;border:none;border-radius:10px;cursor:pointer;background:rgba(255,255,255,0.2);color:white;font-weight:bold;transition:.3s;backdrop-filter:blur(10px);}
+.dark-toggle:hover{background:rgba(255,255,255,0.3);transform:scale(1.05);}
 .container{display:flex;flex-direction:column;max-width:380px;margin:6% auto;padding:2.5rem;background:white;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,0.15);text-align:center;transition:.3s;}
 body.dark .container{background:#242526;color:#E4E6EB;}
 input{width:100%;padding:.85rem;margin:.6rem 0;border:1px solid #ccc;border-radius:10px;font-size:1rem;transition:.2s;}
-body.dark input{background:#3A3B3C;border:#555;color:#E4E6EB;}
+body.dark input{background:#3A3B3C;border:1px solid #555;color:#E4E6EB;}
 button{width:100%;padding:.9rem;margin-top:1rem;border:none;border-radius:10px;background:#4facfe;color:white;font-size:1rem;cursor:pointer;transition:.3s;}
 button:hover{background:#00f2fe;}
 .chat-container{max-width:650px;margin:2rem auto;background:white;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,0.1);overflow:hidden;display:flex;flex-direction:column;transition:.3s;}
@@ -36,6 +36,9 @@ body.dark .input-container{border-top:1px solid #555;}
 body.dark .input-container input{background:#3A3B3C;color:#E4E6EB;}
 .input-container button{padding:1rem;background:#00f2fe;border:none;color:white;cursor:pointer;transition:.3s;}
 .input-container button:hover{background:#4facfe;}
+.error{color:#ff4757;margin-top:0.5rem;font-size:0.9rem;}
+.loading{text-align:center;color:#666;font-style:italic;}
+body.dark .loading{color:#999;}
 </style>
 </head>
 <body>
@@ -45,25 +48,27 @@ body.dark .input-container input{background:#3A3B3C;color:#E4E6EB;}
 <!-- Login / Sign Up -->
 <div class="container" id="login">
   <h2>Sign In / Sign Up</h2>
-  <input type="email" id="email" placeholder="Email">
-  <input type="password" id="password" placeholder="Password">
+  <input type="email" id="email" placeholder="Email" required>
+  <input type="password" id="password" placeholder="Password" required>
   <button onclick="signIn()">Sign In</button>
   <button onclick="signUp()">Sign Up</button>
-  <p id="login-error" style="color:red;"></p>
+  <p id="login-error" class="error"></p>
 </div>
 
 <!-- Name input -->
 <div class="container" id="nameContainer" style="display:none;">
   <h2>Enter your display name</h2>
-  <input type="text" id="displayName" placeholder="Your name">
+  <input type="text" id="displayName" placeholder="Your name" required>
   <button onclick="saveName()">Continue</button>
 </div>
 
 <!-- Chat -->
 <div class="chat-container" id="chat" style="display:none;">
-  <div class="messages" id="messages"></div>
+  <div class="messages" id="messages">
+    <div class="loading">Loading messages...</div>
+  </div>
   <div class="input-container">
-    <input type="text" id="messageInput" placeholder="Type a message...">
+    <input type="text" id="messageInput" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
     <button onclick="sendMessage()">Send</button>
   </div>
 </div>
@@ -72,99 +77,252 @@ body.dark .input-container input{background:#3A3B3C;color:#E4E6EB;}
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <script>
+// Firebase configuration (using a demo config - replace with your own)
 const firebaseConfig = {
-  apiKey: "AIzaSyCx8SYiBF9EUtcsJESyT7ZJcN8m4zd0fE8",
-  authDomain: "famchat-624ab.firebaseapp.com",
-  databaseURL: "https://famchat-624ab-default-rtdb.firebaseio.com",
-  projectId: "famchat-624ab",
-  storageBucket: "famchat-624ab.firebasestorage.app",
-  messagingSenderId: "686126582474",
-  appId: "1:686126582474:web:0b207958778479fa768233",
-  measurementId: "G-PR7T35RYTM"
+  apiKey: "demo-api-key",
+  authDomain: "demo-project.firebaseapp.com",
+  databaseURL: "https://demo-project-default-rtdb.firebaseio.com",
+  projectId: "demo-project",
+  storageBucket: "demo-project.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "demo-app-id"
 };
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.database();
+
+try {
+  firebase.initializeApp(firebaseConfig);
+  var auth = firebase.auth();
+  var db = firebase.database();
+} catch (error) {
+  console.error('Firebase initialization error:', error);
+  document.getElementById('login-error').textContent = 'Firebase connection error. Please check configuration.';
+}
 
 let currentName = "";
+let messagesLoaded = false;
 
-function toggleDarkMode(){document.body.classList.toggle('dark');}
+function toggleDarkMode(){
+  document.body.classList.toggle('dark');
+  // Save dark mode preference
+  localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+}
+
+// Load dark mode preference
+if (localStorage.getItem('darkMode') === 'true') {
+  document.body.classList.add('dark');
+}
 
 // Keep user logged in
-auth.onAuthStateChanged(user=>{
+auth.onAuthStateChanged(user => {
   if(user){
-    db.ref("users/"+user.uid+"/name").once("value").then(snapshot=>{
+    console.log('User logged in:', user.email);
+    db.ref("users/" + user.uid + "/name").once("value").then(snapshot => {
       const name = snapshot.val();
       if(name){
         currentName = name;
         showChat();
-      }else{
-        document.getElementById("login").style.display="none";
-        document.getElementById("nameContainer").style.display="flex";
+      } else {
+        document.getElementById("login").style.display = "none";
+        document.getElementById("nameContainer").style.display = "flex";
       }
+    }).catch(error => {
+      console.error('Error fetching user name:', error);
+      document.getElementById("login").style.display = "none";
+      document.getElementById("nameContainer").style.display = "flex";
     });
+  } else {
+    console.log('No user logged in');
+    // Reset UI to login state
+    document.getElementById("login").style.display = "flex";
+    document.getElementById("nameContainer").style.display = "none";
+    document.getElementById("chat").style.display = "none";
   }
 });
 
 function signUp(){
-  const email = document.getElementById("email").value;
+  const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
-  auth.createUserWithEmailAndPassword(email,password)
-    .then(()=>alert("Account created! Sign in now."))
-    .catch(err=>document.getElementById("login-error").innerText=err.message);
+  const errorEl = document.getElementById("login-error");
+  
+  errorEl.textContent = "";
+  
+  if (!email || !password) {
+    errorEl.textContent = "Please enter both email and password";
+    return;
+  }
+  
+  if (password.length < 6) {
+    errorEl.textContent = "Password must be at least 6 characters";
+    return;
+  }
+  
+  auth.createUserWithEmailAndPassword(email, password)
+    .then(() => {
+      console.log('Account created successfully');
+      alert("Account created! You are now signed in.");
+    })
+    .catch(err => {
+      console.error('Sign up error:', err);
+      errorEl.textContent = getErrorMessage(err);
+    });
 }
 
 function signIn(){
-  const email = document.getElementById("email").value;
+  const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
-  auth.signInWithEmailAndPassword(email,password)
-    .then(()=>document.getElementById("login").style.display="none")
-    .catch(err=>document.getElementById("login-error").innerText=err.message);
+  const errorEl = document.getElementById("login-error");
+  
+  errorEl.textContent = "";
+  
+  if (!email || !password) {
+    errorEl.textContent = "Please enter both email and password";
+    return;
+  }
+  
+  auth.signInWithEmailAndPassword(email, password)
+    .then(() => {
+      console.log('Signed in successfully');
+      document.getElementById("login").style.display = "none";
+    })
+    .catch(err => {
+      console.error('Sign in error:', err);
+      errorEl.textContent = getErrorMessage(err);
+    });
+}
+
+function getErrorMessage(error) {
+  switch(error.code) {
+    case 'auth/user-not-found':
+      return 'No account found with this email';
+    case 'auth/wrong-password':
+      return 'Incorrect password';
+    case 'auth/email-already-in-use':
+      return 'Email already in use';
+    case 'auth/weak-password':
+      return 'Password is too weak';
+    case 'auth/invalid-email':
+      return 'Invalid email address';
+    default:
+      return error.message || 'An error occurred';
+  }
 }
 
 function saveName(){
   const nameInput = document.getElementById("displayName").value.trim();
-  if(!nameInput) return alert("Enter a name");
+  if(!nameInput) {
+    alert("Please enter a name");
+    return;
+  }
+  
   const user = auth.currentUser;
-  db.ref("users/"+user.uid).set({ name: nameInput });
-  currentName = nameInput;
-  showChat();
+  if (!user) {
+    alert("Please sign in first");
+    return;
+  }
+  
+  db.ref("users/" + user.uid).set({ name: nameInput })
+    .then(() => {
+      currentName = nameInput;
+      showChat();
+    })
+    .catch(error => {
+      console.error('Error saving name:', error);
+      alert('Error saving name. Please try again.');
+    });
 }
 
 function showChat(){
-  document.getElementById("nameContainer").style.display="none";
-  document.getElementById("chat").style.display="flex";
-  loadMessages();
+  document.getElementById("nameContainer").style.display = "none";
+  document.getElementById("chat").style.display = "flex";
+  if (!messagesLoaded) {
+    loadMessages();
+  }
 }
 
 function loadMessages(){
   const messagesDiv = document.getElementById("messages");
-  db.ref("messages").off();
-  db.ref("messages").on("child_added", snapshot=>{
+  
+  // Clear loading message
+  messagesDiv.innerHTML = "";
+  
+  db.ref("messages").off(); // Remove any existing listeners
+  
+  // Listen for new messages
+  db.ref("messages").limitToLast(50).on("child_added", snapshot => {
     const msg = snapshot.val();
+    if (!msg) return;
+    
     const div = document.createElement("div");
     div.classList.add("message");
-    div.classList.add(msg.uid===auth.currentUser.uid?"user":"other");
+    div.classList.add(msg.uid === auth.currentUser.uid ? "user" : "other");
+    
     const time = new Date(msg.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-    div.innerHTML = `<span class="name">${msg.name}</span>${msg.text}<span class="time">${time}</span>`;
+    const name = msg.name || 'Unknown User';
+    const text = msg.text || '';
+    
+    div.innerHTML = `<span class="name">${escapeHtml(name)}</span>${escapeHtml(text)}<span class="time">${time}</span>`;
     messagesDiv.appendChild(div);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
   });
+  
+  db.ref("messages").on("value", snapshot => {
+    if (!snapshot.exists()) {
+      messagesDiv.innerHTML = '<div class="loading">No messages yet. Start the conversation!</div>';
+    }
+  });
+  
+  messagesLoaded = true;
 }
 
 function sendMessage(){
   const input = document.getElementById("messageInput");
-  if(!input.value.trim()) return;
+  const messageText = input.value.trim();
+  
+  if(!messageText) return;
+  
+  const user = auth.currentUser;
+  if (!user) {
+    alert("Please sign in to send messages");
+    return;
+  }
+  
   db.ref("messages").push({
-    text: input.value,
-    uid: auth.currentUser.uid,
+    text: messageText,
+    uid: user.uid,
     name: currentName,
-    timestamp: Date.now()
+    timestamp: firebase.database.ServerValue.TIMESTAMP
+  }).then(() => {
+    input.value = "";
+  }).catch(error => {
+    console.error('Error sending message:', error);
+    alert('Error sending message. Please try again.');
   });
-  input.value="";
 }
+
+function handleKeyPress(event) {
+  if (event.key === 'Enter') {
+    sendMessage();
+  }
+}
+
+function escapeHtml(text) {
+  const map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+// Handle connection state
+db.ref('.info/connected').on('value', snapshot => {
+  if (snapshot.val() === true) {
+    console.log('Connected to Firebase');
+  } else {
+    console.log('Disconnected from Firebase');
+  }
+});
 </script>
 </body>
 </html>
-
-
