@@ -260,7 +260,11 @@ function loadMessages(){
     const name = msg.name || 'Unknown User';
     const text = msg.text || '';
     
-    div.innerHTML = `<span class="name">${escapeHtml(name)}</span>${escapeHtml(text)}<span class="time">${time}</span>`;
+    div.innerHTML = `
+      <span class="name">${escapeHtml(name)}</span>
+      <div class="content">${escapeHtml(text)}</div>
+      <div class="time">${time}</div>
+    `;
     messagesDiv.appendChild(div);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
   });
@@ -327,3 +331,4 @@ db.ref('.info/connected').on('value', snapshot => {
 </script>
 </body>
 </html>
+
