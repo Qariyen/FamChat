@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Fam-Chat</title>
+
+  <!-- PWA manifest + iOS meta -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#3b82f6" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <h1>Fam-Chat</h1>
+      <div class="user-controls">
+        <input id="name" placeholder="Your name" />
+        <button id="saveName" class="btn">Save</button>
+        <button id="signout" class="btn hidden">Sign out</button>
+      </div>
+    </header>
+
+    <main id="main">
+      <div id="messages" class="messages"></div>
+    </main>
+
+    <footer class="composer">
+      <input id="msg" placeholder="Type a message..." autocomplete="off" />
+      <button id="send" class="btn">Send</button>
+    </footer>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
