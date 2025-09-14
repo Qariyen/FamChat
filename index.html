@@ -1,224 +1,127 @@
-<!doctype html>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Fam-Chat</title>
-
-  <!-- PWA manifest + iOS meta -->
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#3b82f6" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
-
-  <link rel="stylesheet" href="style.css" />
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fam-Chat</title>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<title>Fam-Chat Simple</title>
 <style>
-  /* Basic reset & font */
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family: 'Roboto', sans-serif; background:#f0f2f5; transition: background 0.3s; }
-
-  /* Header */
-  header {
-    text-align: center;
-    padding: 1.5rem;
-    background: linear-gradient(90deg, #4facfe, #00f2fe);
-    color: white;
-    font-size: 2rem;
-    font-weight: bold;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
-
-  /* Dark mode */
-  body.dark { background:#18191A; color:#E4E6EB; }
-  body.dark header { background: linear-gradient(90deg, #1F1F1F, #3A3A3A); }
-
-  /* Login container */
-  .login-container {
-    display: flex;
-    flex-direction: column;
-    max-width: 380px;
-    margin: 6% auto;
-    padding: 2.5rem;
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-    text-align: center;
-    transition: background 0.3s, color 0.3s;
-  }
-  body.dark .login-container { background:#242526; color:#E4E6EB; }
-
-  .login-container h2 { margin-bottom:1rem; }
-  .login-container input {
-    width:100%; padding:0.85rem; margin:0.6rem 0; border:1px solid #ccc; border-radius:10px; font-size:1rem;
-    transition: border 0.2s, background 0.2s, color 0.2s;
-  }
-  body.dark .login-container input { background:#3A3B3C; border:#555; color:#E4E6EB; }
-
-  .login-container button {
-    width:100%; padding:0.9rem; margin-top:1rem; border:none; border-radius:10px;
-    background:#4facfe; color:white; font-size:1rem; cursor:pointer; transition:0.3s;
-  }
-  .login-container button:hover { background:#00f2fe; }
-
-  /* Chat container */
-  .chat-container {
-    max-width: 650px; margin:2rem auto; background:white; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.1);
-    overflow:hidden; display:flex; flex-direction:column; transition: background 0.3s, color 0.3s;
-  }
-  body.dark .chat-container { background:#242526; color:#E4E6EB; }
-
-  .messages {
-    padding:1rem; height:450px; overflow-y:auto; display:flex; flex-direction:column;
-    scroll-behavior: smooth;
-  }
-
-  .message {
-    padding:0.6rem 1rem; margin-bottom:0.6rem; border-radius:20px; max-width:70%;
-    opacity:0; transform: translateY(20px); animation: fadeIn 0.3s forwards;
-  }
-  @keyframes fadeIn { to { opacity:1; transform:translateY(0); } }
-
-  .message.user { background:#4facfe; color:white; align-self:flex-end; }
-  .message.other { background:#eee; color:black; align-self:flex-start; }
-  body.dark .message.other { background:#3A3B3C; color:#E4E6EB; }
-
-  /* Input & send button */
-  .input-container { display:flex; border-top:1px solid #ccc; }
-  body.dark .input-container { border-top:1px solid #555; }
-  .input-container input {
-    flex:1; padding:1rem; border:none; border-radius:0; outline:none; font-size:1rem;
-    background:#f0f2f5; transition:background 0.3s, color 0.3s;
-  }
-  body.dark .input-container input { background:#3A3B3C; color:#E4E6EB; }
-
-  .input-container button {
-    padding:1rem; background:#00f2fe; border:none; color:white; cursor:pointer; transition:0.3s;
-  }
-  .input-container button:hover { background:#4facfe; }
-
-  /* Dark mode toggle */
-  .dark-toggle {
-    position:fixed; top:1rem; right:1rem; padding:0.5rem 1rem; border:none; border-radius:10px; cursor:pointer;
-    background:#4facfe; color:white; font-weight:bold; transition:0.3s;
-  }
-  .dark-toggle:hover { background:#00f2fe; }
+body{font-family:sans-serif;margin:0;padding:0;}
+#login,#name,#chat{display:none;max-width:400px;margin:50px auto;padding:20px;border:1px solid #ccc;border-radius:10px;}
+#messages{height:300px;overflow-y:auto;border:1px solid #ccc;padding:10px;margin-bottom:10px;}
+.message{margin-bottom:5px;}
 </style>
 </head>
 <body>
-  <div class="app">
-    <header class="top">
-      <h1>Fam-Chat</h1>
-      <div class="user-controls">
-        <input id="name" placeholder="Your name" />
-        <button id="saveName" class="btn">Save</button>
-        <button id="signout" class="btn hidden">Sign out</button>
-      </div>
-    </header>
-
-    <main id="main">
-      <div id="messages" class="messages"></div>
-    </main>
-
-    <footer class="composer">
-      <input id="msg" placeholder="Type a message..." autocomplete="off" />
-      <button id="send" class="btn">Send</button>
-    </footer>
-<header>Fam-Chat</header>
-
-<!-- Dark mode toggle -->
-<button class="dark-toggle" onclick="toggleDarkMode()">🌙</button>
-
-<!-- Login -->
-<div class="login-container" id="login">
-  <h2>Sign In</h2>
-  <input type="email" id="email" placeholder="Email">
-  <input type="password" id="password" placeholder="Password">
+<div id="login">
+  <h3>Login / Signup</h3>
+  <input id="email" placeholder="Email"><br><br>
+  <input id="password" placeholder="Password" type="password"><br><br>
+  <button onclick="signUp()">Sign Up</button>
   <button onclick="signIn()">Sign In</button>
-  <p id="login-error" style="color:red;"></p>
+  <p id="loginError" style="color:red"></p>
 </div>
 
-<!-- Chat -->
-<div class="chat-container" id="chat" style="display:none;">
-  <div class="messages" id="messages"></div>
-  <div class="input-container">
-    <input type="text" id="messageInput" placeholder="Type a message...">
-    <button onclick="sendMessage()">Send</button>
-  </div>
+<div id="name">
+  <h3>Enter your display name</h3>
+  <input id="displayName" placeholder="Name"><br><br>
+  <button onclick="saveName()">Continue</button>
+</div>
+
+<div id="chat">
+  <h3>Fam-Chat</h3>
+  <div id="messages"></div>
+  <input id="messageInput" placeholder="Type a message">
+  <button onclick="sendMessage()">Send</button>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
 <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyCx8SYiBF9EUtcsJESyT7ZJcN8m4zd0fE8",
-    authDomain: "famchat-624ab.firebaseapp.com",
-    projectId: "famchat-624ab",
-    storageBucket: "famchat-624ab.firebasestorage.app",
-    messagingSenderId: "686126582474",
-    appId: "1:686126582474:web:0b207958778479fa768233",
-    measurementId: "G-PR7T35RYTM"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
+const firebaseConfig = {
+  apiKey: "AIzaSyCx8SYiBF9EUtcsJESyT7ZJcN8m4zd0fE8",
+  authDomain: "famchat-624ab.firebaseapp.com",
+  databaseURL: "https://famchat-624ab-default-rtdb.firebaseio.com",
+  projectId: "famchat-624ab",
+  storageBucket: "famchat-624ab.firebasestorage.app",
+  messagingSenderId: "686126582474",
+  appId: "1:686126582474:web:0b207958778479fa768233"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
 
-  <script type="module" src="app.js"></script>
-  // Dark mode
-  function toggleDarkMode() {
-    document.body.classList.toggle('dark');
-  }
+let currentName = "";
 
-  // Sign in
-  function signIn() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    auth.signInWithEmailAndPassword(email, password)
-      .then(() => {
-        document.getElementById("login").style.display="none";
-        document.getElementById("chat").style.display="flex";
-        loadMessages();
-      })
-      .catch(err => {
-        document.getElementById("login-error").innerText = err.message;
-      });
-  }
+// Show login at start
+document.getElementById('login').style.display="block";
 
-  // Load messages
-  function loadMessages() {
-    db.collection("messages").orderBy("timestamp")
-      .onSnapshot(snapshot => {
-        const messagesDiv = document.getElementById("messages");
-        messagesDiv.innerHTML = "";
-        snapshot.forEach(doc => {
-          const msg = doc.data();
-          const div = document.createElement("div");
-          div.classList.add("message");
-          div.classList.add(msg.uid === auth.currentUser.uid ? "user" : "other");
-          div.innerText = msg.text;
-          messagesDiv.appendChild(div);
-        });
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
-      });
-  }
-
-  // Send message
-  function sendMessage() {
-    const input = document.getElementById("messageInput");
-    if(!input.value.trim()) return;
-    db.collection("messages").add({
-      text: input.value,
-      uid: auth.currentUser.uid,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+auth.onAuthStateChanged(user=>{
+  if(user){
+    db.ref("users/"+user.uid+"/name").once("value").then(snap=>{
+      const name = snap.val();
+      if(name){ currentName = name; showChat(); }
+      else { document.getElementById("login").style.display="none"; document.getElementById("name").style.display="block"; }
     });
-    input.value = "";
-  }
+  } else { document.getElementById("login").style.display="block"; }
+});
+
+function signUp(){
+  const email=document.getElementById("email").value;
+  const password=document.getElementById("password").value;
+  auth.createUserWithEmailAndPassword(email,password)
+      .then(()=>alert("Account created! Sign in now."))
+      .catch(err=>document.getElementById("loginError").innerText=err.message);
+}
+
+function signIn(){
+  const email=document.getElementById("email").value;
+  const password=document.getElementById("password").value;
+  auth.signInWithEmailAndPassword(email,password)
+      .catch(err=>document.getElementById("loginError").innerText=err.message);
+}
+
+function saveName(){
+  const nameInput = document.getElementById("displayName").value.trim();
+  if(!nameInput) return alert("Enter a name");
+  const user = auth.currentUser;
+  db.ref("users/"+user.uid).set({ name: nameInput });
+  currentName=nameInput;
+  showChat();
+}
+
+function showChat(){
+  document.getElementById("login").style.display="none";
+  document.getElementById("name").style.display="none";
+  document.getElementById("chat").style.display="block";
+  loadMessages();
+}
+
+function loadMessages(){
+  const messagesDiv=document.getElementById("messages");
+  db.ref("messages").off();
+  db.ref("messages").on("child_added",snap=>{
+    const msg=snap.val();
+    const div=document.createElement("div");
+    div.classList.add("message");
+    div.textContent=msg.name+": "+msg.text;
+    messagesDiv.appendChild(div);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  });
+}
+
+function sendMessage(){
+  const input=document.getElementById("messageInput");
+  if(!input.value.trim()) return;
+  db.ref("messages").push({
+    text: input.value,
+    uid: auth.currentUser.uid,
+    name: currentName,
+    timestamp: Date.now()
+  });
+  input.value="";
+}
 </script>
 </body>
 </html>
